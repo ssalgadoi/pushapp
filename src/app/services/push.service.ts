@@ -6,6 +6,14 @@ import { OneSignal } from '@ionic-native/onesignal/ngx';
 })
 export class PushService {
 
+  mensajes :any[] = [
+    {
+      title: 'Titulo de la push',
+      body: 'Este es el Body de la push',
+      date: new Date()
+    }
+  ]
+
   constructor( private oneSignal: OneSignal) { }
 
 configuracionInicial() {
