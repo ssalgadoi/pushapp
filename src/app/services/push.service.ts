@@ -16,6 +16,8 @@ export class PushService {
     // }
   ];
 
+  userId: string = '';
+
   pushListener = new EventEmitter<OSNotificationPayload>();
 
   constructor(
@@ -30,20 +32,25 @@ export class PushService {
      }
 configuracionInicial() {
   this.oneSignal.startInit('', '');
-  
+
   this.oneSignal.inFocusDisplaying(this.oneSignal.OSInFocusDisplayOption.Notification);
-  
+
   this.oneSignal.handleNotificationReceived().subscribe(( noti ) => {
     console.log('Notificacion recibida', noti);
     this.notificacionRecibida( noti );
   });
-  
+
   this.oneSignal.handleNotificationOpened().subscribe( async ( noti ) => {
     console.log('Notificación abierta', noti);
     await this.notificacionRecibida( noti.notification );
   });
-  
-  this,this.oneSignal.endInit();
+
+  //Obtener id del subcriptor
+  this.oneSignal.getIds().then( info => {
+    this.userId = info.userId;
+    console.log(this.userId);
+  });
+  this.oneSignal.endInit();
 }
   async notificacionRecibida( noti: OSNotification)  {
 
