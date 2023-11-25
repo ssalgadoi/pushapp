@@ -1,22 +1,33 @@
-import { Injectable } from '@angular/core';
+import { Injectable, EventEmitter } from '@angular/core';
+import { Storage } from '@ionic/storage';
+import { OneSignal , OSNotification, OSNotificationPayload } from '@ionic-native/onesignal/ngx';
 
-import { OneSignal , OSNotification } from '@ionic-native/onesignal/ngx';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PushService {
 
-  mensajes :any[] = [
-    {
-      title: 'Titulo de la push',
-      body: 'Este es el Body de la push',
-      date: new Date()
-    }
-  ]
+  mensajes :OSNotificationPayload[] = [
+    // {
+      // title: 'Titulo de la push',
+      // body: 'Este es el Body de la push',
+      // date: new Date()
+    // }
+  ];
 
-  constructor( private oneSignal: OneSignal) { }
+  pushListener = new EventEmitter<OSNotificationPayload>();
 
+  constructor(
+    private oneSignal: OneSignal,
+    private storage: Storage ) {
+      this.cargarMensajes();
+     }
+
+     async getMensajes() {
+      await this.cargarMensajes();
+      return [...this.mensajes];
+     }
 configuracionInicial() {
   this.oneSignal.startInit('', '');
   this.oneSignal.inFocusDisplaying(this.oneSignal.OSInFocusDisplayOption.Notification);
@@ -25,18 +36,39 @@ configuracionInicial() {
     this.notificacionRecibida( noti );
   });
   this.oneSignal.handleNotificationOpened().subscribe(( noti ) => {
-    console.log('Notificación abierta')
+    console.log('Notificación abierta', noti)
   });
+  this,this.oneSignal.endInit();
 }
-  notificacionRecibida( noti: OSNotification)  {
+  async notificacionRecibida( noti: OSNotification)  {
+
+    await this.cargarMensajes();
+
     const payload = noti.payload;
+    if (!payload) {
+      console.log('Payload de notificación es undefined');
+      return;
+    }
+
     const existePush = this.mensajes.find( mensaje => mensaje.notificationID ===
-      payload?.notificationID);
+      payload.notificationID);
 
       if( existePush ) {
         return
       }
 
       this.mensajes.unshift( payload );
+      this.pushListener.emit( payload );
+
+      this.guardarMensajes();
+
+  }
+
+  guardarMensajes() {
+    this.storage.set('mensajes', this.mensajes);
+  }
+
+  async cargarMensajes(){
+    this.mensajes =  await this.storage.get('mensajes') || [];
   }
 }
