@@ -30,14 +30,19 @@ export class PushService {
      }
 configuracionInicial() {
   this.oneSignal.startInit('', '');
+  
   this.oneSignal.inFocusDisplaying(this.oneSignal.OSInFocusDisplayOption.Notification);
+  
   this.oneSignal.handleNotificationReceived().subscribe(( noti ) => {
     console.log('Notificacion recibida', noti);
     this.notificacionRecibida( noti );
   });
-  this.oneSignal.handleNotificationOpened().subscribe(( noti ) => {
-    console.log('Notificación abierta', noti)
+  
+  this.oneSignal.handleNotificationOpened().subscribe( async ( noti ) => {
+    console.log('Notificación abierta', noti);
+    await this.notificacionRecibida( noti.notification );
   });
+  
   this,this.oneSignal.endInit();
 }
   async notificacionRecibida( noti: OSNotification)  {
@@ -60,7 +65,7 @@ configuracionInicial() {
       this.mensajes.unshift( payload );
       this.pushListener.emit( payload );
 
-      this.guardarMensajes();
+      await this.guardarMensajes();
 
   }
 
@@ -69,6 +74,9 @@ configuracionInicial() {
   }
 
   async cargarMensajes(){
+
     this.mensajes =  await this.storage.get('mensajes') || [];
+
+    return this.mensajes;
   }
 }
