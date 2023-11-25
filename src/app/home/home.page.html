@@ -12,7 +12,13 @@
       <ion-label>Pushes</ion-label>
     </ion-list-header>
     <ion-item *ngFor="let push of pushService.mensajes">
-      <ion-label>Awesome Label</ion-label>
+      <ion-label>
+        <h3> {{ push.title }} </h3>
+        <p> {{push.body}}</p>
+        <p>
+          {{ push.additionalData | json }}
+        </p>
+      </ion-label>
     </ion-item>
   </ion-list>
 
